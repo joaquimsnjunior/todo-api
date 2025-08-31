@@ -1,0 +1,17 @@
+version: '3.9'
+
+services: 
+  tasks_db:
+    container_name: tasks_db
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=tasks
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=tasks
+    ports:
+      - "5432:5432"
+    volumes:
+      - tasks_db_data:/var/lib/postgresql/data
+
+volumes:
+  tasks_db_data: {}
