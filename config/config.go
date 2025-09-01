@@ -1,34 +1,53 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
+	"database/sql"
+	"fmt"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
-// Config armazena as configurações do banco de dados
-type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
-}
+func GetDB() *sql.DB {
+	// Usa valores das variáveis de ambiente ou valores padrão baseados no docker-compose.yml
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
+	}
 
-func LoadConfig() *Config {
-	// Carrega as variáveis de ambiente
-	err := godotenv.Load()
+	port := os.Getenv("DB_PORT")
+	if port == "" {
+		port = "5432"
+	}
+
+	user := os.Getenv("DB_USER")
+	if user == "" {
+		user = "tasks"
+	}
+
+	password := os.Getenv("DB_PASSWORD")
+	if password == "" {
+		password = "1234"
+	}
+
+	dbname := os.Getenv("DB_NAME")
+	if dbname == "" {
+		dbname = "tasks"
+	}
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Println("Error loading .env file")
+		log.Fatal(err)
 	}
 
-	return &Config{
-		DBHost:     os.Getenv("DB_HOST"),
-		DBPort:     os.Getenv("DB_PORT"),
-		DBUser:     os.Getenv("DB_USER"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBName:     os.Getenv("DB_NAME"),
-		DBSSLMode:  os.Getenv("DB_SSLMODE"),
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	return db
 }
